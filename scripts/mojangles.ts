@@ -1,4 +1,4 @@
-export const chars = {
+export const chars: Record<string, number> = {
   "0": 5,
   "1": 5,
   "2": 5,

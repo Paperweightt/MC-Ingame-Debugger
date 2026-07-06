@@ -1,7 +1,7 @@
 import { Dimension, TextPrimitive, Vector2, Vector3, world } from "@minecraft/server";
 import { Node } from "./node";
 import { Rect } from "../../utils";
-import { VECTOR3_ZERO, Vector3Utils } from "@minecraft/math";
+import { VECTOR3_ZERO } from "@minecraft/math";
 
 export interface RenderContext {
   dimension: Dimension;
@@ -46,7 +46,6 @@ export class Root extends Node {
     };
 
     if (this.layoutDirty) {
-      world.sendMessage("hi");
       this.measure();
       this.arrange(new Rect(0, 0, this.width, this.height));
 
@@ -61,8 +60,8 @@ export class Root extends Node {
   drawText(text: string, location: Vector2, rotation: Vector3 = VECTOR3_ZERO): TextPrimitive {
     const textPrimitive = new TextPrimitive(
       {
-        x: this.location.x + location.x * Root.BLOCK_TO_PIXELS * this.scale,
-        y: this.location.y + location.y * Root.BLOCK_TO_PIXELS * this.scale,
+        x: this.location.x + (location.x / Root.BLOCK_TO_PIXELS) * this.scale,
+        y: this.location.y + (location.y / Root.BLOCK_TO_PIXELS) * this.scale,
         z: this.location.z,
       },
       text
@@ -70,8 +69,6 @@ export class Root extends Node {
 
     textPrimitive.rotation = rotation;
     textPrimitive.useRotation = true;
-
-    world.sendMessage(Vector3Utils.toString(textPrimitive.location));
 
     this.textPrimitives.push(textPrimitive);
     world.primitiveShapesManager.addText(textPrimitive, this.dimension);

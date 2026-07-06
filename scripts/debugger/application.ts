@@ -1,6 +1,7 @@
-import { Dimension, Player, Vector3, world } from "@minecraft/server";
+import { Dimension, Player, Vector3 } from "@minecraft/server";
 import { Root } from "../ui/scene/root";
 import { Label } from "../ui/controls/label";
+import { VerticalLayout } from "../ui/layout/verticalLayout";
 
 export class Application {
   root: Root;
@@ -16,9 +17,14 @@ export class Application {
   }
 
   build(): void {
-    const label = new Label(0, 0, "hello world?");
+    const words = ["hi", "hello", "wahhhh"];
+    const sidebar = new VerticalLayout(0, 0);
 
-    this.root.children.add(label);
+    for (const word of words) {
+      sidebar.add(new Label(0, 0, word));
+    }
+
+    this.root.add(sidebar);
     this.root.frame();
   }
 }

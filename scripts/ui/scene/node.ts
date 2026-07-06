@@ -2,16 +2,16 @@ import { Rect } from "../../utils";
 import { RenderContext } from "./root";
 
 export abstract class Node {
-  children: Set<Node> = new Set();
+  protected children: Set<Node> = new Set();
 
-  x = 0;
-  y = 0;
+  worldX = 0;
+  worldY = 0;
   width = 0;
   height = 0;
 
   constructor(
-    public xOffset: number = 0,
-    public yOffset: number = 0
+    public x: number = 0,
+    public y: number = 0
   ) {}
 
   add(child: Node): void {
@@ -23,14 +23,14 @@ export abstract class Node {
   }
 
   arrange(rect: Rect): void {
-    this.x = this.xOffset + rect.x;
-    this.y = this.yOffset + rect.y;
+    this.worldX = this.x + rect.x;
+    this.worldY = this.y + rect.y;
 
     for (const child of this.children) {
       child.arrange(
         new Rect(
-          this.x,
-          this.y,
+          this.worldX,
+          this.worldY,
           Math.min(rect.width, this.width),
           Math.min(rect.width, this.height)
         )

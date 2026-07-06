@@ -22,10 +22,11 @@ export class VerticalLayout extends Node {
     let x = rect.x;
 
     for (const child of this.children) {
-      child.arrange(rect);
-
       child.worldX = x;
       child.worldY = y;
+
+      child.arrange(new Rect(x, y, rect.width, rect.height));
+
       y -= child.height;
     }
   }

@@ -1,17 +1,27 @@
+import { Player } from "@minecraft/server";
+import { colorCodes, Rect } from "../../utils";
 import { Node } from "../scene/node";
 import { RenderContext } from "../scene/root";
 import { Label } from "./label";
 
 export class Button extends Node {
-  onHover?: (ctx: RenderContext) => void;
-  onHoverEnd?: (ctx: RenderContext) => void;
-  onClick?: (ctx: RenderContext) => void;
+  onHover?: (player: Player) => void;
+  onHoverEnd?: (player: Player) => void;
+  onClick?: (player: Player) => void;
 
-  constructor(label?: string) {
+  constructor(text?: string) {
     super();
 
-    if (label) {
-      this.add(new Label(label));
+    if (text) {
+      const label = new Label(text);
+
+      this.add(label);
+
+      this.setOnHover(() => {
+        label.textPrimitive?.setText(colorCodes.dark_green + text);
+      }).setOnHoverEnd(() => {
+        label.textPrimitive?.setText(text);
+      });
     }
   }
 
@@ -19,24 +29,35 @@ export class Button extends Node {
     this.height = 0;
     this.width = 0;
 
+    super.measure();
+
     for (const child of this.children) {
       this.height = Math.max(this.height, child.height);
       this.width = Math.max(this.width, child.width);
     }
   }
 
-  setOnHover(callback: (ctx: RenderContext) => void): Button {
+  setOnHover(callback: (player: Player) => void): Button {
     this.onHover = callback;
     return this;
   }
 
-  setOnHoverEnd(callback: (ctx: RenderContext) => void): Button {
+  setOnHoverEnd(callback: (player: Player) => void): Button {
     this.onHoverEnd = callback;
     return this;
   }
 
-  setOnClick(callback: (ctx: RenderContext) => void): Button {
+  setOnClick(callback: (player: Player) => void): Button {
     this.onClick = callback;
     return this;
+  }
+
+  render(ctx: RenderContext): void {
+    super.render(ctx);
+    ctx.createButton(new Rect(this.worldX, this.worldY, this.width, this.height), {
+      onHover: this.onHover,
+      onClick: this.onClick,
+      onHoverEnd: this.onHoverEnd,
+    });
   }
 }

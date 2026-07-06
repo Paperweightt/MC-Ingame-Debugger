@@ -8,6 +8,15 @@ export class Rect {
     public width: number,
     public height: number
   ) {}
+
+  contains(x: number, y: number): boolean {
+    if (x < this.x) return false;
+    if (y > this.y) return false;
+    if (x > this.x + this.width) return false;
+    if (y < this.y - this.height) return false;
+
+    return true;
+  }
 }
 
 export interface Size {

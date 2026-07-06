@@ -1,17 +1,13 @@
+import { TextPrimitive } from "@minecraft/server";
 import { getStringSize } from "../../utils";
 import { Node } from "../scene/node";
 import { RenderContext } from "../scene/root";
 
-// type Align = "Left" | "Right" | "Center";
-
 export class Label extends Node {
-  constructor(
-    x: number,
-    y: number,
-    private string: string
-    // private align: Align = "Left"
-  ) {
-    super(x, y);
+  textPrimitive?: TextPrimitive;
+
+  constructor(public string: string) {
+    super();
   }
 
   measure() {
@@ -22,6 +18,9 @@ export class Label extends Node {
   }
 
   render(ctx: RenderContext): void {
-    ctx.drawText(this.string, { x: this.worldX, y: this.worldY });
+    this.textPrimitive = ctx.drawText(this.string, {
+      x: this.worldX + this.width / 2,
+      y: this.worldY,
+    });
   }
 }

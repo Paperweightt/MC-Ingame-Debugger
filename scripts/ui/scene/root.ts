@@ -60,8 +60,8 @@ export class Root extends Node {
   drawText(text: string, location: Vector2, rotation: Vector3 = VECTOR3_ZERO): TextPrimitive {
     const textPrimitive = new TextPrimitive(
       {
-        x: this.location.x + (location.x / Root.BLOCK_TO_PIXELS) * this.scale,
-        y: this.location.y + (location.y / Root.BLOCK_TO_PIXELS) * this.scale,
+        x: this.location.x + (-location.x / Root.BLOCK_TO_PIXELS) * this.scale,
+        y: this.location.y + ((location.y - 10) / Root.BLOCK_TO_PIXELS) * this.scale,
         z: this.location.z,
       },
       text

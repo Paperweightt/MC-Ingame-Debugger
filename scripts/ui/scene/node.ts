@@ -8,11 +8,8 @@ export abstract class Node {
   worldY = 0;
   width = 0;
   height = 0;
-
-  constructor(
-    public x: number = 0,
-    public y: number = 0
-  ) {}
+  x = 0;
+  y = 0;
 
   add(child: Node): void {
     this.children.add(child);

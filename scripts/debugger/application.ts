@@ -18,10 +18,10 @@ export class Application {
 
   build(): void {
     const words = ["hi", "hello", "wahhhh"];
-    const sidebar = new VerticalLayout(0, 0);
+    const sidebar = new VerticalLayout();
 
     for (const word of words) {
-      sidebar.add(new Label(0, 0, word));
+      sidebar.add(new Label(word));
     }
 
     this.root.add(sidebar);

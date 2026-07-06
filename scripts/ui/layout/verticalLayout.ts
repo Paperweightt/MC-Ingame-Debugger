@@ -24,8 +24,6 @@ export class VerticalLayout extends Node {
     for (const child of this.children) {
       child.arrange(rect);
 
-      console.log(child.height);
-
       child.worldX = x;
       child.worldY = y;
       y -= child.height;

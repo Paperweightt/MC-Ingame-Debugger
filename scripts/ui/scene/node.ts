@@ -19,6 +19,10 @@ export abstract class Node {
     this.children.delete(child);
   }
 
+  clear(): void {
+    this.children.clear();
+  }
+
   arrange(rect: Rect): void {
     this.worldX = this.x + rect.x;
     this.worldY = this.y + rect.y;

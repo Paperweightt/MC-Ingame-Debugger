@@ -18,7 +18,7 @@ export class Button extends Node {
       this.add(label);
 
       this.setOnHover(() => {
-        label.textPrimitive?.setText(colorCodes.dark_green + text);
+        label.textPrimitive?.setText(colorCodes.gray + text);
       }).setOnHoverEnd(() => {
         label.textPrimitive?.setText(text);
       });
@@ -26,15 +26,12 @@ export class Button extends Node {
   }
 
   measure() {
-    this.height = 0;
-    this.width = 0;
-
     super.measure();
 
-    for (const child of this.children) {
-      this.height = Math.max(this.height, child.height);
-      this.width = Math.max(this.width, child.width);
-    }
+    const child = this.children.values().next().value;
+
+    this.height = child?.height || 0;
+    this.width = child?.width || 0;
   }
 
   setOnHover(callback: (player: Player) => void): Button {

@@ -11,9 +11,15 @@ export interface RenderContext {
 }
 
 export interface ButtonCallbacks {
-  onHover?: (ctx: Player) => void;
-  onHoverEnd?: (ctx: Player) => void;
-  onClick?: (ctx: Player) => void;
+  onHover?: (ctx: ButtonContext) => void;
+  onHoverEnd?: (ctx: ButtonContext) => void;
+  onClick?: (ctx: ButtonContext) => void;
+}
+
+export interface ButtonContext {
+  dimension: Dimension;
+  player: Player;
+  frame: () => void;
 }
 
 export class Root extends Node {
@@ -90,7 +96,13 @@ export class Root extends Node {
     const button = this.getButton(cursor);
     if (!button) return;
 
-    if (button.onClick) button.onClick(player);
+    const ctx: ButtonContext = {
+      dimension: this.dimension,
+      frame: this.frame.bind(this),
+      player: player,
+    };
+
+    if (button.onClick) button.onClick(ctx);
   }
 
   hover(player: Player): void {
@@ -100,8 +112,14 @@ export class Root extends Node {
 
     if (button === this.previousButtonHovered) return;
 
+    const ctx: ButtonContext = {
+      dimension: this.dimension,
+      frame: this.frame.bind(this),
+      player: player,
+    };
+
     if (this.previousButtonHovered !== button && this.previousButtonHovered?.onHoverEnd) {
-      this.previousButtonHovered.onHoverEnd(player);
+      this.previousButtonHovered.onHoverEnd(ctx);
     }
 
     this.previousButtonHovered = button;
@@ -109,7 +127,7 @@ export class Root extends Node {
     if (!button) return;
 
     if (button.onHover) {
-      button.onHover(player);
+      button.onHover(ctx);
     }
   }
 

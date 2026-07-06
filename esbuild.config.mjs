@@ -1,4 +1,6 @@
 import * as esbuild from "esbuild";
+import { spawn } from "node:child_process";
+import chokidar from "chokidar";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -21,10 +23,7 @@ const config = {
 
 async function main() {
   if (watch) {
-    const watcher = fs.watch("scripts");
-    watcher.addListener("change", async () => {
-      build();
-    });
+    chokidar.watch("./scripts").on("change", build);
   }
   build();
 }
@@ -43,10 +42,19 @@ async function build() {
           fs.writeFileSync(sourceMapPath, out.text);
         }
       }
+      notifyNvim("Esbuild suceded");
     })
     .catch((error) => {
-      console.log(error.message);
+      if (error.errors) {
+        error.errors.forEach((err) => {
+          notifyNvim(`Location: ${err.location?.file}:${err.location?.line}`, 3);
+        });
+      }
     });
+}
+
+function notifyNvim(message, level = 0) {
+  spawn("nvr", ["-c", `lua require("notify")("${message}",${level})`]);
 }
 
 main().catch(() => process.exit(1));

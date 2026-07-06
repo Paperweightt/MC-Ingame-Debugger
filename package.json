@@ -5,9 +5,9 @@
   "description": "by Origami Studios",
   "private": true,
   "devDependencies": {
+    "chokidar": "^5.0.0",
     "esbuild": "^0.25.5",
-    "prettier": "3.8.3",
-    "chokidar": "^5.0.0"
+    "prettier": "3.8.3"
   },
   "dependencies": {
     "@minecraft/math": "^2.2.11",

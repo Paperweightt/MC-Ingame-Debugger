@@ -28,7 +28,9 @@ export class TreeLayout extends Node {
     }
 
     const button = new Button(prefix + "> " + key).setOnClick((ctx) => {
-      if (!state) {
+      if ((state = !state)) {
+        branch.clear();
+
         if (value instanceof Set) {
           let key = 0;
           for (const node of value) {
@@ -48,16 +50,12 @@ export class TreeLayout extends Node {
 
         this.layout.add(branch);
       } else {
-        branch.clear();
         this.layout.remove(branch);
       }
       ctx.frame();
-
-      state = !state;
     });
 
     this.layout.add(button);
-    this.layout.add(branch);
   }
 
   measure(): void {

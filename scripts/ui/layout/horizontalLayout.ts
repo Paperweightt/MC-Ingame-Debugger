@@ -1,7 +1,7 @@
 import { Rect } from "../../utils";
 import { Node } from "../scene/node";
 
-export class VerticalLayout extends Node {
+export class Horizontal extends Node {
   constructor(public padding: number = 0) {
     super();
   }
@@ -13,8 +13,8 @@ export class VerticalLayout extends Node {
     for (const child of this.children) {
       child.measure();
 
-      height += child.height + this.padding;
-      width = Math.max(child.width, width);
+      width += child.width + this.padding;
+      height = Math.max(child.height, height);
     }
 
     this.width = width;
@@ -28,7 +28,7 @@ export class VerticalLayout extends Node {
     for (const child of this.children) {
       child.arrange(new Rect(x, y, rect.width, rect.height));
 
-      y -= child.height + this.padding;
+      x += child.width + this.padding;
     }
   }
 }

@@ -37,11 +37,8 @@ export class TreeLayout extends Node {
           branch.clear();
 
           if (value instanceof Set) {
-            let key = 0;
-            for (const node of value) {
-              addNode(key, node);
-              key++;
-            }
+            let index = 0;
+            for (const node of value) addNode(index++, node);
           } else if (value instanceof Map) {
             for (const [key, node] of value) addNode(key, node);
           } else {

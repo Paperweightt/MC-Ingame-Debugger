@@ -5,7 +5,6 @@ import { VECTOR3_ZERO, Vector3Utils as Vec3 } from "@minecraft/math";
 
 export interface RenderContext {
   dimension: Dimension;
-  layoutDirty: boolean;
   drawText: (text: string, location: Vector2, rotation?: Vector3) => TextPrimitive;
   createButton: (rect: Rect, callbacks: ButtonCallbacks) => void;
 }
@@ -26,14 +25,14 @@ export class Root extends Node {
   static scenes: Set<Root> = new Set();
   static BLOCK_TO_PIXELS = 37.5;
 
-  textPrimitives: TextPrimitive[] = [];
+  textPrimitives: [TextPrimitive, Vector2][] = [];
   buttons: { rect: Rect; callbacks: ButtonCallbacks }[] = [];
   layoutDirty = true;
   scale = 1;
   previousButtonHovered?: ButtonCallbacks;
   width: number = Infinity;
   height: number = Infinity;
-  rotation: Vector3 = { x: 0, y: 0, z: 0 };
+  rotation: Vector3 = VECTOR3_ZERO;
 
   constructor(
     public dimension: Dimension,
@@ -47,8 +46,6 @@ export class Root extends Node {
     for (const child of this.children) {
       child.render(ctx);
     }
-
-    this.layoutDirty = ctx.layoutDirty;
   }
 
   frame(): void {
@@ -56,7 +53,6 @@ export class Root extends Node {
       dimension: this.dimension,
       drawText: this.drawText.bind(this),
       createButton: this.createButton.bind(this),
-      layoutDirty: this.layoutDirty,
     };
 
     if (this.layoutDirty) {
@@ -71,20 +67,22 @@ export class Root extends Node {
     this.render(ctx);
   }
 
-  drawText(text: string, location: Vector2, rotation: Vector3 = VECTOR3_ZERO): TextPrimitive {
-    const textPrimitive = new TextPrimitive(
+  drawText(text: string, location: Vector2): TextPrimitive {
+    const rotatedLocation = Vec3.rotateY(
       {
-        x: this.location.x + (-location.x / Root.BLOCK_TO_PIXELS) * this.scale,
-        y: this.location.y + (location.y / Root.BLOCK_TO_PIXELS) * this.scale,
-        z: this.location.z,
+        x: (-location.x / Root.BLOCK_TO_PIXELS) * this.scale,
+        y: (location.y / Root.BLOCK_TO_PIXELS) * this.scale,
+        z: 0,
       },
-      text
+      (this.rotation.y * Math.PI) / 180
     );
 
-    textPrimitive.rotation = rotation;
+    const textPrimitive = new TextPrimitive(Vec3.add(this.location, rotatedLocation), text);
+
+    textPrimitive.rotation = this.rotation;
     textPrimitive.useRotation = true;
 
-    this.textPrimitives.push(textPrimitive);
+    this.textPrimitives.push([textPrimitive, location]);
     world.primitiveShapesManager.addText(textPrimitive, this.dimension);
 
     return textPrimitive;
@@ -140,9 +138,9 @@ export class Root extends Node {
   getCursor(player: Player): Vector2 | undefined {
     const location = Vec3.rotateY(
       Vec3.subtract(getPlayerEye(player), this.location),
-      ((this.rotation.x + 90) * Math.PI) / 180
+      ((-this.rotation.y + 90) * Math.PI) / 180
     );
-    const dir = Vec3.rotateY(player.getViewDirection(), ((this.rotation.x + 90) * Math.PI) / 180);
+    const dir = Vec3.rotateY(player.getViewDirection(), ((-this.rotation.y + 90) * Math.PI) / 180);
 
     if (dir.x < 0) return;
 
@@ -162,8 +160,26 @@ export class Root extends Node {
     this.buttons.push({ rect, callbacks });
   }
 
+  setRotation(rotation: Vector3): void {
+    this.rotation = rotation;
+
+    for (const [textPrimitive, location] of this.textPrimitives) {
+      const rotatedLocation = Vec3.rotateY(
+        {
+          x: (-location.x / Root.BLOCK_TO_PIXELS) * this.scale,
+          y: (location.y / Root.BLOCK_TO_PIXELS) * this.scale,
+          z: 0,
+        },
+        (this.rotation.y * Math.PI) / 180
+      );
+
+      textPrimitive.setLocation(Vec3.add(this.location, rotatedLocation));
+      textPrimitive.rotation = rotation;
+    }
+  }
+
   clear(): void {
-    for (const textPrimitive of this.textPrimitives) {
+    for (const [textPrimitive] of this.textPrimitives) {
       textPrimitive.remove();
     }
     this.textPrimitives = [];

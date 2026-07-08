@@ -27,7 +27,7 @@ export abstract class Node {
     this.worldX = this.x + rect.x;
     this.worldY = this.y + rect.y;
     this.width = Math.min(rect.width, this.width);
-    this.height = Math.min(rect.width, this.height);
+    this.height = Math.min(rect.height, this.height);
 
     for (const child of this.children) {
       child.arrange(new Rect(this.worldX, this.worldY, this.width, this.height));

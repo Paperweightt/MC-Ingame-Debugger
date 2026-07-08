@@ -25,7 +25,14 @@ export class VerticalLayout extends Node {
     let y = rect.y;
     let x = rect.x;
 
+    this.worldX = rect.x + this.x;
+    this.worldY = rect.y + this.y;
+    this.width = Math.min(rect.width, this.width);
+    this.height = Math.min(rect.width, this.height);
+
     for (const child of this.children) {
+      child.worldX = x;
+      child.worldY = y;
       child.arrange(new Rect(x, y, rect.width, rect.height));
 
       y -= child.height + this.padding;

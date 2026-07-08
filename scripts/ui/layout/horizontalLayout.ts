@@ -1,7 +1,7 @@
 import { Rect } from "../../utils";
 import { Node } from "../scene/node";
 
-export class Horizontal extends Node {
+export class HorizontalLayout extends Node {
   constructor(public padding: number = 0) {
     super();
   }
@@ -24,6 +24,11 @@ export class Horizontal extends Node {
   arrange(rect: Rect): void {
     let y = rect.y;
     let x = rect.x;
+
+    this.worldX = rect.x + this.x;
+    this.worldY = rect.y + this.y;
+    this.width = Math.min(rect.width, this.width);
+    this.height = Math.min(rect.width, this.height);
 
     for (const child of this.children) {
       child.arrange(new Rect(x, y, rect.width, rect.height));

@@ -5,6 +5,22 @@ import { Button } from "./button";
 import { Label } from "./label";
 
 export class TreeLayout extends Node {
+  static getClass(object: Object) {
+    const name = object.constructor.name;
+    switch (name) {
+      case "Set":
+        return "Set<>";
+      case "Map":
+        return "Map<>";
+      case "Array":
+        return "[]";
+      case "Object":
+        return "{}";
+      default:
+        return name;
+    }
+  }
+
   layout = new VerticalLayout();
 
   constructor(
@@ -21,9 +37,11 @@ export class TreeLayout extends Node {
 
     function addNode(key: string | number, value: any): void {
       if (typeof value === "object") {
-        branch.add(new TreeLayout("" + key, value, childPrefix));
+        branch.add(new TreeLayout(key + ": " + TreeLayout.getClass(value), value, childPrefix));
       } else if (typeof value === "function") {
         branch.add(new Label(childPrefix + "ƒ " + key));
+      } else if (typeof value === "string") {
+        branch.add(new Label(`${childPrefix}≡ ${key}: "${value.replaceAll("\n", "\\ n")}"`));
       } else {
         branch.add(new Label(childPrefix + "≡ " + key + ": " + value));
       }
@@ -54,10 +72,12 @@ export class TreeLayout extends Node {
         ctx.frame();
       })
       .setOnHover(() => {
-        label.textPrimitive?.setText(colorCodes.gray + label.string);
+        const arrow = state ? "v " : "> ";
+        label.textPrimitive?.setText(prefix + arrow + colorCodes.gray + key);
       })
       .setOnHoverEnd(() => {
-        label.textPrimitive?.setText(label.string);
+        const arrow = state ? "v " : "> ";
+        label.textPrimitive?.setText(prefix + arrow + key);
       });
 
     button.add(label);

@@ -92,3 +92,47 @@ export const colorCodes = {
   italic: "§o",
   reset: "§r",
 } as const;
+
+export type DeepChangeCallback = (path: string[], oldValue: any, newValue: any) => void;
+
+export function deepProxy<T extends object>(
+  obj: T,
+  callback: DeepChangeCallback,
+  path: string[] = [],
+  proxyCache = new WeakMap<object, any>()
+): T {
+  const handler: ProxyHandler<object> = {
+    get(target, prop) {
+      const value = Reflect.get(target, prop);
+
+      if (prop === "prototype") return value;
+
+      if (typeof prop === "string" && value !== null && typeof value === "object") {
+        const currentPath = [...path, prop];
+
+        if (!proxyCache.has(value)) {
+          proxyCache.set(value, deepProxy(value, callback, currentPath, proxyCache));
+        }
+        return proxyCache.get(value);
+      }
+
+      return value;
+    },
+
+    set(target, prop, value, receiver) {
+      if (typeof prop !== "string") return Reflect.set(target, prop, value, receiver);
+
+      const currentPath = [...path, prop];
+      const oldValue = Reflect.get(target, prop);
+
+      const success = Reflect.set(target, prop, value, receiver);
+
+      if (success && oldValue !== value) {
+        callback(currentPath, oldValue, value);
+      }
+      return success;
+    },
+  };
+
+  return new Proxy(obj, handler) as T;
+}

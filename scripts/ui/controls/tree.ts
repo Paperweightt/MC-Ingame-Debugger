@@ -23,9 +23,9 @@ export class TreeLayout extends Node {
       if (typeof value === "object") {
         branch.add(new TreeLayout("" + key, value, childPrefix));
       } else if (typeof value === "function") {
-        branch.add(new Button(childPrefix + "ƒ " + key));
+        branch.add(new Label(childPrefix + "ƒ " + key));
       } else {
-        branch.add(new Button(childPrefix + "≡ " + key + ": " + value));
+        branch.add(new Label(childPrefix + "≡ " + key + ": " + value));
       }
     }
 

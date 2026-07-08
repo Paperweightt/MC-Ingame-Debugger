@@ -24,10 +24,10 @@ export interface ButtonContext {
 export class Root extends Node {
   static scenes: Set<Root> = new Set();
   static BLOCK_TO_PIXELS = 37.5;
+  static LINE_HEIGHT = 10;
 
   textPrimitives: [TextPrimitive, Vector2][] = [];
   buttons: { rect: Rect; callbacks: ButtonCallbacks }[] = [];
-  layoutDirty = true;
   scale = 1;
   previousButtonHovered?: ButtonCallbacks;
   width: number = Infinity;
@@ -42,12 +42,6 @@ export class Root extends Node {
     Root.scenes.add(this);
   }
 
-  render(ctx: RenderContext): void {
-    for (const child of this.children) {
-      child.render(ctx);
-    }
-  }
-
   frame(): void {
     const ctx: RenderContext = {
       dimension: this.dimension,
@@ -55,23 +49,20 @@ export class Root extends Node {
       createButton: this.createButton.bind(this),
     };
 
-    if (this.layoutDirty) {
-      this.measure();
-      this.arrange(new Rect(0, 0, this.width, this.height));
-
-      this.layoutDirty = false;
-    }
-
+    this.measure();
+    this.arrange(new Rect(0, 0, this.width, this.height));
     this.clear();
-
     this.render(ctx);
   }
 
   drawText(text: string, location: Vector2): TextPrimitive {
+    const lineCount = text.match(/^.+$/gm)?.length || 0;
+    const yOffset = lineCount / -8;
+
     const rotatedLocation = Vec3.rotateY(
       {
         x: (-location.x / Root.BLOCK_TO_PIXELS) * this.scale,
-        y: (location.y / Root.BLOCK_TO_PIXELS) * this.scale,
+        y: ((location.y + Root.LINE_HEIGHT / 2) / Root.BLOCK_TO_PIXELS + yOffset) * this.scale,
         z: 0,
       },
       (this.rotation.y * Math.PI) / 180

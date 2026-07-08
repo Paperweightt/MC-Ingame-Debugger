@@ -25,35 +25,46 @@ export interface Size {
 }
 
 export function getStringSize(string: string): Size {
-  const strings = string.split("\n");
-  let width = 0;
+  let maxWidth = 0;
+  let currentWidth = 0;
+  let validLineCount = 0;
+  let hasCharsInLine = false;
 
-  for (const string of strings) {
-    let amount = 0;
+  for (let i = 0; i < string.length; i++) {
+    const char = string[i];
 
-    for (const char of string) {
-      if (!Object.hasOwn(chars, char)) {
-        throw new Error(`Unknown char: "${char}"`);
+    if (char === "\n") {
+      if (hasCharsInLine) {
+        validLineCount++;
+        if (currentWidth > maxWidth) maxWidth = currentWidth;
       }
-
-      amount += chars[char] + 1;
+      currentWidth = 0;
+      hasCharsInLine = false;
+      continue;
     }
 
-    width = Math.max(amount, width);
+    const charWidth = chars[char];
+    if (!charWidth) throw new Error(`Unknown char: "${char}"`);
+
+    currentWidth += charWidth + 1;
+    hasCharsInLine = true;
+  }
+
+  if (hasCharsInLine) {
+    validLineCount++;
+    if (currentWidth > maxWidth) maxWidth = currentWidth;
   }
 
   return {
-    width: width + 1 + (width % 2 ? 0 : 1),
-    height: strings.length * 10,
+    width: maxWidth > 0 ? maxWidth + 1 + (maxWidth % 2 ? 0 : 1) : 0,
+    height: validLineCount * 10,
   };
 }
 
 export function getPlayerEye(player: Player): Vector3 {
-  const headModelSize = 8;
-  const headHeight = headModelSize / 32;
   const location = player.getHeadLocation();
 
-  location.y += headHeight / 2 - 0.022;
+  location.y += 0.103;
 
   return location;
 }

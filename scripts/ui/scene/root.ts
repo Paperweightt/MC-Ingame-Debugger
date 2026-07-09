@@ -19,6 +19,7 @@ export interface ButtonContext {
   dimension: Dimension;
   player: Player;
   frame: () => void;
+  getCursor: (player: Player) => Vector2 | undefined;
 }
 
 export class Root extends Node {
@@ -27,6 +28,7 @@ export class Root extends Node {
   static LINE_HEIGHT = 10;
 
   textPrimitives: [TextPrimitive, Vector2][] = [];
+  textBin: TextPrimitive[] = [];
   buttons: { rect: Rect; callbacks: ButtonCallbacks }[] = [];
   scale = 1;
   previousButtonHovered?: ButtonCallbacks;
@@ -51,13 +53,25 @@ export class Root extends Node {
 
     this.measure();
     this.arrange(new Rect(0, 0, this.width, this.height));
+
+    this.textBin = this.textPrimitives.map(([text]) => text);
+
     this.clear();
     this.render(ctx);
+
+    this.clearBin();
+  }
+
+  clearBin() {
+    for (const text of this.textBin) {
+      text.remove();
+    }
   }
 
   drawText(text: string, location: Vector2): TextPrimitive {
     const lineCount = text.match(/^.+$/gm)?.length || 0;
     const yOffset = lineCount / -8;
+    let textPrimitive = this.textBin.pop();
 
     const rotatedLocation = Vec3.rotateY(
       {
@@ -67,8 +81,14 @@ export class Root extends Node {
       },
       (this.rotation.y * Math.PI) / 180
     );
+    const realLocation = Vec3.add(this.location, rotatedLocation);
 
-    const textPrimitive = new TextPrimitive(Vec3.add(this.location, rotatedLocation), text);
+    if (textPrimitive) {
+      textPrimitive.setLocation(realLocation);
+      textPrimitive.setText(text);
+    } else {
+      textPrimitive = new TextPrimitive(realLocation, text);
+    }
 
     textPrimitive.rotation = this.rotation;
     textPrimitive.useRotation = true;
@@ -88,6 +108,7 @@ export class Root extends Node {
     const ctx: ButtonContext = {
       dimension: this.dimension,
       frame: this.frame.bind(this),
+      getCursor: this.getCursor.bind(this),
       player: player,
     };
 
@@ -104,6 +125,7 @@ export class Root extends Node {
     const ctx: ButtonContext = {
       dimension: this.dimension,
       frame: this.frame.bind(this),
+      getCursor: this.getCursor.bind(this),
       player: player,
     };
 
@@ -170,9 +192,6 @@ export class Root extends Node {
   }
 
   clear(): void {
-    for (const [textPrimitive] of this.textPrimitives) {
-      textPrimitive.remove();
-    }
     this.textPrimitives = [];
     this.buttons = [];
     this.previousButtonHovered = undefined;

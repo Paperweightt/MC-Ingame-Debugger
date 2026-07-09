@@ -99,7 +99,9 @@ export const chars: Record<string, number> = {
   "¿": 5,
   "¡": 1,
   " ": 3,
+
   ƒ: 5,
+  ñ: 5,
 
   "░": 7,
   "▒": 8,

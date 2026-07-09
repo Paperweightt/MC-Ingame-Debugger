@@ -1,8 +1,11 @@
-import { Rect } from "../../utils";
+import { system, world } from "@minecraft/server";
+import { getStringSize, Rect } from "../../utils";
 import { Button } from "../controls/button";
 import { Node } from "../scene/node";
 
 export class HorizontalSplit extends Node {
+  static HALF_DIVIDER_WIDTH = getStringSize("\n ").width / 2;
+
   dividers: Set<Button> = new Set();
 
   constructor(public padding: number = 0) {
@@ -19,9 +22,42 @@ export class HorizontalSplit extends Node {
 
   addDivider(): void {
     const button = new Button("\n ");
+    let isMoving = false;
+
+    button
+      .setOnClick((ctx) => {
+        if (isMoving) return;
+
+        let previousX = button.worldX;
+
+        const id = system.runInterval(() => {
+          const cursor = ctx.getCursor(ctx.player);
+          button.worldX = cursor ? cursor.x - HorizontalSplit.HALF_DIVIDER_WIDTH : 0;
+
+          if (previousX !== button.worldX) {
+            ctx.frame();
+            previousX = button.worldX;
+          }
+        });
+
+        const event = world.afterEvents.playerSwingStart.subscribe((data) => {
+          if (data.player !== ctx.player) return;
+          system.clearRun(id);
+          world.afterEvents.playerSwingStart.unsubscribe(event);
+          isMoving = false;
+        });
+
+        isMoving = true;
+      })
+      .setOnHover(() => {})
+      .setOnHoverEnd(() => {});
 
     this.dividers.add(button);
     this.children.add(button);
+  }
+
+  isDivider(child: Node): boolean {
+    return child instanceof Button && this.dividers.has(child);
   }
 
   measure(): void {
@@ -29,7 +65,7 @@ export class HorizontalSplit extends Node {
     let height = 0;
 
     for (const child of this.children) {
-      if (child instanceof Button && this.dividers.has(child)) continue;
+      if (this.isDivider(child)) continue;
 
       child.measure();
 
@@ -39,8 +75,8 @@ export class HorizontalSplit extends Node {
 
     for (const child of this.dividers) {
       if (!child.label) continue;
-      child.label.textPrimitive?.setText("\n ".repeat(height / 10));
       child.label.string = "\n ".repeat(height / 10);
+      child.measure();
     }
 
     this.width = width;
@@ -48,21 +84,30 @@ export class HorizontalSplit extends Node {
   }
 
   arrange(rect: Rect): void {
-    let y = rect.y;
-    let x = rect.x;
-    let isDivider = false;
-
     this.worldX = rect.x + this.x;
     this.worldY = rect.y + this.y;
     this.width = Math.min(rect.width, this.width);
     this.height = Math.min(rect.width, this.height);
 
+    const dividerIterator: SetIterator<Button> | undefined = this.dividers.values();
+    let prevDivider: Button | undefined = undefined;
+    let nextDivider: Button | undefined = undefined;
+
     for (const child of this.children) {
-      child.arrange(new Rect(x, y, rect.width, rect.height));
+      if (this.isDivider(child)) {
+        child.arrange(new Rect(child.worldX, child.worldY, child.width, child.height));
+        continue;
+      }
+      nextDivider = dividerIterator.next().value;
 
-      x += child.width + this.padding;
+      const start = prevDivider
+        ? prevDivider.worldX + HorizontalSplit.HALF_DIVIDER_WIDTH + this.padding
+        : rect.x;
+      const end = nextDivider ? nextDivider.width - this.padding : rect.width;
 
-      isDivider = !isDivider;
+      child.arrange(new Rect(start, rect.y, end, rect.height));
+
+      prevDivider = nextDivider;
     }
   }
 }

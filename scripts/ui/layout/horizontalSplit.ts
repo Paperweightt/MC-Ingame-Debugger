@@ -4,7 +4,8 @@ import { Button } from "../controls/button";
 import { Node } from "../scene/node";
 
 export class HorizontalSplit extends Node {
-  static HALF_DIVIDER_WIDTH = getStringSize("\n ").width / 2;
+  static DIVIDER_WIDTH = getStringSize(" ").width;
+  static HALF_DIVIDER_WIDTH = getStringSize(" ").width / 2;
 
   dividers: Set<Button> = new Set();
 
@@ -101,9 +102,11 @@ export class HorizontalSplit extends Node {
       nextDivider = dividerIterator.next().value;
 
       const start = prevDivider
-        ? prevDivider.worldX + HorizontalSplit.HALF_DIVIDER_WIDTH + this.padding
+        ? prevDivider.worldX + HorizontalSplit.DIVIDER_WIDTH + this.padding
         : rect.x;
-      const end = nextDivider ? nextDivider.width - this.padding : rect.width;
+      const end = nextDivider
+        ? nextDivider.worldX - this.padding - HorizontalSplit.DIVIDER_WIDTH
+        : rect.width;
 
       child.arrange(new Rect(start, rect.y, end, rect.height));
 

@@ -40,6 +40,13 @@ export function getStringWithinBounds(
   let outputString = "";
   let skip = false;
 
+  if (width <= 0 || height <= 0)
+    return {
+      string: "",
+      width: 0,
+      height: 0,
+    };
+
   for (let i = 0; i < string.length; i++) {
     const char = string[i];
 

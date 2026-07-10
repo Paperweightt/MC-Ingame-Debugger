@@ -41,7 +41,11 @@ export class TreeLayout extends Node {
       } else if (typeof value === "function") {
         branch.add(new Label(childPrefix + "ƒ " + key));
       } else if (typeof value === "string") {
-        branch.add(new Label(`${childPrefix}≡ ${key}: "${value.replaceAll("\n", "\\ n")}"`));
+        branch.add(
+          new Label(
+            `${childPrefix}≡ ${key}: "${value.replaceAll("\n", "\\ñ").replaceAll("\t", "\\t")}"`
+          )
+        );
       } else {
         branch.add(new Label(childPrefix + "≡ " + key + ": " + value));
       }

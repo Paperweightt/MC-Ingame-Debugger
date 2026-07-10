@@ -11,7 +11,7 @@ const config = {
   entryPoints: ["scripts/main.ts"],
   outfile: "behavior_packs/pack0/scripts/main.js",
   bundle: true,
-  minify: true,
+  minify: false,
   platform: "node",
   treeShaking: true,
   format: "esm",

@@ -54,7 +54,7 @@ export class Root extends Node {
     this.measure();
     this.arrange(new Rect(0, 0, this.width, this.height));
 
-    this.textBin = this.textPrimitives.map(([text]) => text);
+    this.textBin = this.textPrimitives.map(([text]) => text).reverse();
 
     this.clear();
     this.render(ctx);

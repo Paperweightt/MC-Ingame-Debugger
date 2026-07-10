@@ -1,5 +1,5 @@
 import { TextPrimitive } from "@minecraft/server";
-import { getStringSize } from "../../utils";
+import { getStringSize, getStringWithinBounds } from "../../utils";
 import { Node } from "../scene/node";
 import { RenderContext } from "../scene/root";
 
@@ -18,8 +18,10 @@ export class Label extends Node {
   }
 
   render(ctx: RenderContext): void {
-    this.textPrimitive = ctx.drawText(this.string, {
-      x: this.worldX + this.width / 2,
+    const stringWithinBounds = getStringWithinBounds(this.string, this.width, this.height);
+
+    this.textPrimitive = ctx.drawText(stringWithinBounds.string, {
+      x: this.worldX + stringWithinBounds.width / 2,
       y: this.worldY,
     });
   }

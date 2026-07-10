@@ -24,6 +24,61 @@ export interface Size {
   height: number;
 }
 
+export interface StringWithBounds extends Size {
+  string: string;
+}
+
+export function getStringWithinBounds(
+  string: string,
+  width: number,
+  height: number
+): StringWithBounds {
+  let maxWidth = 0;
+  let currentWidth = 0;
+  let validLineCount = 0;
+  let hasCharsInLine = false;
+  let outputString = "";
+  let skip = false;
+
+  for (let i = 0; i < string.length; i++) {
+    const char = string[i];
+
+    if (char === "\n") {
+      if (hasCharsInLine) {
+        validLineCount++;
+        if (currentWidth > maxWidth) maxWidth = currentWidth;
+      }
+      currentWidth = 0;
+      hasCharsInLine = false;
+      outputString += "\n";
+      skip = false;
+      continue;
+    } else if (skip) {
+      continue;
+    }
+
+    const charWidth = chars[char];
+    if (!charWidth) throw new Error(`Unknown char: "${char}"`);
+
+    currentWidth += charWidth + 1;
+    outputString += char;
+    hasCharsInLine = true;
+
+    if (currentWidth > width - 2) skip = true;
+  }
+
+  if (hasCharsInLine) {
+    validLineCount++;
+    if (currentWidth > maxWidth) maxWidth = currentWidth;
+  }
+
+  return {
+    string: outputString,
+    width: maxWidth > 0 ? maxWidth + 1 + (maxWidth % 2 ? 0 : 1) : 0,
+    height: Math.min(validLineCount * 10, height),
+  };
+}
+
 export function getStringSize(string: string): Size {
   let maxWidth = 0;
   let currentWidth = 0;

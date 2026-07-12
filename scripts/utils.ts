@@ -186,7 +186,12 @@ export function deepProxy<T extends object>(
         if (!proxyCache.has(value)) {
           proxyCache.set(value, deepProxy(value, callback, currentPath, proxyCache));
         }
+
         return proxyCache.get(value);
+      }
+
+      if (typeof value === "function") {
+        return value.bind(target);
       }
 
       return value;

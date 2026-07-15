@@ -3,41 +3,32 @@ import { getStringSize, Rect } from "../../utils";
 import { Button } from "../controls/button";
 import { Node } from "../scene/node";
 
-export class HorizontalSplit extends Node {
-  static DIVIDER_WIDTH = getStringSize(" ").width;
-  static HALF_DIVIDER_WIDTH = getStringSize(" ").width / 2;
+class Divider extends Node {
+  button: Button;
 
-  dividers: Set<Button> = new Set();
-
-  constructor(public padding: number = 0) {
+  constructor(
+    public child: Node,
+    public padding: number = 0
+  ) {
     super();
-  }
-
-  add(child: Node): void {
-    if (this.children.size !== 0) {
-      this.addDivider();
-    }
-
-    this.children.add(child);
-  }
-
-  addDivider(): void {
-    const button = new Button("\n ");
+    this.button = new Button("\n ");
     let isMoving = false;
 
-    button
+    this.button
       .setOnClick((ctx) => {
         if (isMoving) return;
 
-        let previousX = button.worldX;
+        let previousX = this.worldX;
 
         const id = system.runInterval(() => {
           const cursor = ctx.getCursor(ctx.player);
-          button.worldX = cursor ? cursor.x - HorizontalSplit.HALF_DIVIDER_WIDTH : 0;
+          if (!cursor) return;
 
-          if (previousX !== button.worldX) {
+          this.worldX = cursor.x - HorizontalSplit.HALF_DIVIDER_WIDTH;
+
+          if (previousX !== this.worldX) {
             ctx.frame();
-            previousX = button.worldX;
+            previousX = this.worldX;
           }
         });
 
@@ -53,12 +44,78 @@ export class HorizontalSplit extends Node {
       .setOnHover(() => {})
       .setOnHoverEnd(() => {});
 
-    this.dividers.add(button);
-    this.children.add(button);
+    this.add(this.button);
+
+    this.children.add(child);
   }
 
-  isDivider(child: Node): boolean {
-    return child instanceof Button && this.dividers.has(child);
+  setHeight(height: number) {
+    if (!this.button.label) return;
+    this.button.label.string = "\n ".repeat(height / 10);
+  }
+
+  replaceChild(node: Node) {
+    this.child = node;
+  }
+
+  measure() {
+    super.measure();
+    this.width = HorizontalSplit.DIVIDER_WIDTH + this.padding + this.child.width;
+    this.height = this.child.height;
+  }
+
+  arrange(rect: Rect): void {
+    let y = rect.y;
+    let x = rect.x;
+
+    // this.worldX = Math.max(rect.x, this.worldX);
+    // this.worldX = clampNumber(this.worldX, rect.x, rect.x + rect.width);
+    this.worldY = rect.y + this.y;
+    this.width = Math.min(rect.width - this.worldX, this.width);
+    this.height = Math.min(rect.width, this.height);
+
+    this.button.arrange(new Rect(this.worldX, y, Infinity, Infinity));
+    this.child.arrange(
+      new Rect(
+        this.worldX + this.padding + HorizontalSplit.DIVIDER_WIDTH,
+        y,
+        this.width - this.padding - HorizontalSplit.DIVIDER_WIDTH,
+        rect.height
+      )
+    );
+  }
+}
+
+export class HorizontalSplit extends Node {
+  static DIVIDER_WIDTH = getStringSize(" ").width;
+  static HALF_DIVIDER_WIDTH = getStringSize(" ").width / 2;
+
+  dividers: Set<Button> = new Set();
+
+  constructor(public padding: number = 0) {
+    super();
+  }
+
+  add(child: Node): void {
+    if (this.children.size !== 0) {
+      super.add(new Divider(child, this.padding));
+    } else {
+      super.add(child);
+    }
+  }
+
+  getLast(): Node {
+    let lastElement;
+    for (const value of this.children) {
+      lastElement = value;
+    }
+    if (lastElement === undefined)
+      throw new Error("Retrieval of last element of children was called while set is empty");
+    return lastElement;
+  }
+
+  remove(child: Node): void {
+    super.remove(child);
   }
 
   measure(): void {
@@ -66,18 +123,14 @@ export class HorizontalSplit extends Node {
     let height = 0;
 
     for (const child of this.children) {
-      if (this.isDivider(child)) continue;
-
       child.measure();
 
       width += child.width + this.padding;
       height = Math.max(child.height, height);
     }
 
-    for (const child of this.dividers) {
-      if (!child.label) continue;
-      child.label.string = "\n ".repeat(height / 10);
-      child.measure();
+    for (const child of this.children) {
+      if (child instanceof Divider) child.setHeight(height);
     }
 
     this.width = width;
@@ -90,16 +143,12 @@ export class HorizontalSplit extends Node {
     this.width = Math.min(rect.width, this.width);
     this.height = Math.min(rect.width, this.height);
 
-    const dividerIterator: SetIterator<Button> | undefined = this.dividers.values();
-    let prevDivider: Button | undefined = undefined;
-    let nextDivider: Button | undefined = undefined;
+    const children = [...this.children];
 
-    for (const child of this.children) {
-      if (this.isDivider(child)) {
-        child.arrange(new Rect(child.worldX, child.worldY, child.width, child.height));
-        continue;
-      }
-      nextDivider = dividerIterator.next().value;
+    for (let i = 0; i < children.length; i++) {
+      const prevDivider = children[i - 1];
+      const currentDivider = children[i];
+      const nextDivider = children[i + 1];
 
       const start = prevDivider
         ? prevDivider.worldX + HorizontalSplit.DIVIDER_WIDTH + this.padding
@@ -108,9 +157,9 @@ export class HorizontalSplit extends Node {
         ? nextDivider.worldX - this.padding - HorizontalSplit.DIVIDER_WIDTH
         : rect.width;
 
-      child.arrange(new Rect(start, rect.y, end, rect.height));
-
-      prevDivider = nextDivider;
+      if (currentDivider) {
+        currentDivider.arrange(new Rect(start, this.worldY, end, Infinity));
+      }
     }
   }
 }

@@ -67,21 +67,23 @@ export class TreeLayout extends Node {
             for (const [key, node] of Object.entries(value)) addNode(key, node);
           }
 
-          label.string = prefix + "v " + key;
+          label.setString(prefix + "v " + key);
           this.layout.add(branch);
         } else {
-          label.string = prefix + "> " + key;
+          label.setString(prefix + "> " + key);
           this.layout.remove(branch);
         }
         ctx.frame();
       })
-      .setOnHover(() => {
+      .setOnHover((ctx) => {
         const arrow = state ? "v " : "> ";
-        label.textPrimitive?.setText(prefix + arrow + colorCodes.gray + key);
+        label.setString(prefix + arrow + colorCodes.gray + key);
+        ctx.frame();
       })
-      .setOnHoverEnd(() => {
+      .setOnHoverEnd((ctx) => {
         const arrow = state ? "v " : "> ";
-        label.textPrimitive?.setText(prefix + arrow + key);
+        label.setString(prefix + arrow + key);
+        ctx.frame();
       });
 
     button.add(label);

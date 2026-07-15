@@ -10,6 +10,10 @@ export class Label extends Node {
     super();
   }
 
+  setString(string: string) {
+    this.string = string;
+  }
+
   measure() {
     const size = getStringSize(this.string);
 

@@ -37,8 +37,7 @@ export function getStringWithinBounds(
   let currentWidth = 0;
   let validLineCount = 0;
   let hasCharsInLine = false;
-  let outputString = "";
-  let skip = false;
+  let outputString = [];
 
   if (width <= 0 || height <= 0)
     return {
@@ -57,21 +56,33 @@ export function getStringWithinBounds(
       }
       currentWidth = 0;
       hasCharsInLine = false;
-      outputString += "\n";
-      skip = false;
-      continue;
-    } else if (skip) {
+      outputString.push("\n");
       continue;
     }
-
     const charWidth = chars[char];
     if (!charWidth) throw new Error(`Unknown char: "${char}"`);
 
+    if (char === "§") {
+      const nextChar = string[i + 1];
+      if (colorCodeChars.includes(nextChar)) {
+        outputString.push(char, nextChar);
+        i++;
+        continue;
+      }
+    }
+
     currentWidth += charWidth + 1;
-    outputString += char;
+    outputString.push(char);
     hasCharsInLine = true;
 
-    if (currentWidth > width - 2) skip = true;
+    if (currentWidth > width - 2) {
+      const nextNewline = string.indexOf("\n", i);
+      if (nextNewline !== -1) {
+        i = nextNewline;
+      } else {
+        break;
+      }
+    }
   }
 
   if (hasCharsInLine) {
@@ -80,7 +91,7 @@ export function getStringWithinBounds(
   }
 
   return {
-    string: outputString,
+    string: outputString.join(""),
     width: maxWidth > 0 ? maxWidth + 1 + (maxWidth % 2 ? 0 : 1) : 0,
     height: Math.min(validLineCount * 10, height),
   };
@@ -165,6 +176,8 @@ export const colorCodes = {
   italic: "§o",
   reset: "§r",
 } as const;
+
+export const colorCodeChars = Object.values(colorCodes).map((str) => str[1]);
 
 export type DeepChangeCallback = (path: string[], oldValue: any, newValue: any) => void;
 

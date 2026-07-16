@@ -17,6 +17,28 @@ export class Rect {
 
     return true;
   }
+
+  union(rect2: Rect): Rect {
+    const minX = Math.min(this.x, rect2.x);
+    const minY = Math.min(this.y, rect2.y);
+
+    const maxX = Math.max(this.x + this.width, rect2.x + rect2.width);
+    const maxY = Math.max(this.y + this.height, rect2.y + rect2.height);
+
+    return new Rect(minX, minY, maxX - minX, maxY - minY);
+  }
+
+  intersection(rect2: Rect): Rect {
+    const minX = Math.max(this.x, rect2.x);
+    const minY = Math.max(this.y, rect2.y);
+    const maxX = Math.min(this.x + this.width, rect2.x + rect2.width);
+    const maxY = Math.min(this.y + this.height, rect2.y + rect2.height);
+
+    const width = Math.max(0, maxX - minX);
+    const height = Math.max(0, maxY - minY);
+
+    return new Rect(minX, minY, width, height);
+  }
 }
 
 export interface Size {

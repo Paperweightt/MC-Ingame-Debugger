@@ -81,8 +81,6 @@ export function getStringWithinBounds(
       outputString.push("\n");
       continue;
     }
-    const charWidth = chars[char];
-    if (!charWidth) throw new Error(`Unknown char: "${char}"`);
 
     if (char === "§") {
       const nextChar = string[i + 1];
@@ -93,18 +91,19 @@ export function getStringWithinBounds(
       }
     }
 
-    currentWidth += charWidth + 1;
-    outputString.push(char);
-    hasCharsInLine = true;
+    const charWidth = chars[char];
+    if (!charWidth) throw new Error(`Unknown char: "${char}"`);
 
-    if (currentWidth > width - 2) {
+    if (currentWidth + charWidth + 1 > width) {
       const nextNewline = string.indexOf("\n", i);
       if (nextNewline !== -1) {
         i = nextNewline;
-      } else {
-        break;
-      }
+      } else break;
     }
+
+    currentWidth += charWidth + 1;
+    outputString.push(char);
+    hasCharsInLine = true;
   }
 
   if (hasCharsInLine) {
@@ -136,6 +135,14 @@ export function getStringSize(string: string): Size {
       currentWidth = 0;
       hasCharsInLine = false;
       continue;
+    }
+
+    if (char === "§") {
+      const nextChar = string[i + 1];
+      if (colorCodeChars.includes(nextChar)) {
+        i++;
+        continue;
+      }
     }
 
     const charWidth = chars[char];

@@ -1,4 +1,4 @@
-import { Dimension, Player, system, Vector3, world } from "@minecraft/server";
+import { Dimension, EntitySwingSource, Player, system, Vector3, world } from "@minecraft/server";
 import { Root } from "../ui/scene/root";
 import { VerticalLayout } from "../ui/layout/verticalLayout";
 import { TreeLayout } from "../ui/controls/tree";
@@ -9,20 +9,23 @@ import { WatchRegistry } from "./registry";
 import { Watch } from "./decorators";
 
 export class Application {
-  @Watch("App List")
+  @Watch("Applications")
   static list: Map<string, Application> = new Map();
+  @Watch("Watch List")
   static watchList: Map<string, Object> = WatchRegistry;
-  static test = 0;
 
   static {
-    system.runInterval(() => {
-      for (const [_, app] of Application.list) {
-        app.root.hover(app.owner);
-      }
+    world.afterEvents.worldLoad.subscribe(() => {
+      system.runInterval(() => {
+        for (const [_, app] of Application.list) {
+          app.root.hover(app.owner);
+        }
+      });
     });
 
     world.afterEvents.playerSwingStart.subscribe((event) => {
-      const { player } = event;
+      const { player, swingSource } = event;
+      if (swingSource !== EntitySwingSource.Attack) return;
       Application.list.get(player.id)?.root.click(player);
     });
   }
@@ -43,18 +46,21 @@ export class Application {
 
   build(): void {
     const app = new HorizontalSplit(2, [80]);
-
     const sidebar = new VerticalLayout();
+    const trees: Map<string, TreeLayout> = new Map();
 
     app.add(sidebar);
-    app.add(new TreeLayout("debugger", this.root));
-
     sidebar.add(new Label("Silverfish Debugger"));
+    app.add(new Label("Empty"));
 
     for (const [key, value] of Application.watchList) {
+      trees.set(key, new TreeLayout(key, value));
+    }
+
+    for (const [id, tree] of trees) {
       sidebar.add(
-        new Button(key).setOnClick((ctx) => {
-          app.setWindow(1, new TreeLayout(key, value));
+        new Button(id).setOnClick((ctx) => {
+          app.setWindow(1, tree);
           ctx.frame();
         })
       );

@@ -51,10 +51,13 @@ class Divider extends Node {
 
   setHeight(height: number) {
     if (!this.button.label) return;
-    this.button.label.string = "\n ".repeat(height / 10);
+    this.button.label.setString("\n ".repeat(height / 10));
   }
 
   replaceChild(node: Node) {
+    this.remove(this.child);
+    this.add(node);
+
     this.child = node;
   }
 
@@ -66,10 +69,19 @@ class Divider extends Node {
 
   arrange(rect: Rect): void {
     let y = rect.y;
-    let x = rect.x;
 
-    // this.worldX = Math.max(rect.x, this.worldX);
-    // this.worldX = clampNumber(this.worldX, rect.x, rect.x + rect.width);
+    this.worldX = Math.max(rect.x, this.worldX);
+
+    // if (this.worldX > rect.x + rect.width) {
+    //   world.sendMessage("world x over width");
+    //   this.worldX = Math.min(
+    //     this.worldX,
+    //     rect.x + rect.width - HorizontalSplit.HALF_DIVIDER_WIDTH - this.padding
+    //   );
+    // }
+    // if (rect.width - this.padding - HorizontalSplit.DIVIDER_WIDTH < 0) {
+    //   world.sendMessage("here");
+    // }
     this.worldY = rect.y + this.y;
     this.width = Math.min(rect.width - this.worldX, this.width);
     this.height = Math.min(rect.width, this.height);
@@ -92,7 +104,10 @@ export class HorizontalSplit extends Node {
 
   dividers: Set<Button> = new Set();
 
-  constructor(public padding: number = 0) {
+  constructor(
+    public padding: number = 0,
+    public defaults: number[] = []
+  ) {
     super();
   }
 
@@ -104,14 +119,12 @@ export class HorizontalSplit extends Node {
     }
   }
 
-  getLast(): Node {
-    let lastElement;
-    for (const value of this.children) {
-      lastElement = value;
-    }
-    if (lastElement === undefined)
-      throw new Error("Retrieval of last element of children was called while set is empty");
-    return lastElement;
+  setWindow(index: number, node: Node) {
+    const list: Divider[] = [...this.children] as Divider[];
+
+    if (index === 0) throw new Error("Not implemented");
+
+    list[index].replaceChild(node);
   }
 
   remove(child: Node): void {
@@ -150,16 +163,12 @@ export class HorizontalSplit extends Node {
       const currentDivider = children[i];
       const nextDivider = children[i + 1];
 
-      const start = prevDivider
-        ? prevDivider.worldX + HorizontalSplit.DIVIDER_WIDTH + this.padding
-        : rect.x;
-      const end = nextDivider
-        ? nextDivider.worldX - this.padding - HorizontalSplit.DIVIDER_WIDTH
-        : rect.width;
+      const start =
+        i > 1 ? prevDivider.worldX + HorizontalSplit.DIVIDER_WIDTH + this.padding : rect.x;
+      const end = nextDivider ? nextDivider.worldX - this.padding : rect.width;
+      const width = end - start;
 
-      if (currentDivider) {
-        currentDivider.arrange(new Rect(start, this.worldY, end, Infinity));
-      }
+      currentDivider.arrange(new Rect(start, this.worldY, width, Infinity));
     }
   }
 }

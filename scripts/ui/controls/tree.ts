@@ -1,3 +1,4 @@
+import { world } from "@minecraft/server";
 import { colorCodes } from "../../utils";
 import { VerticalLayout } from "../layout/verticalLayout";
 import { Node } from "../scene/node";

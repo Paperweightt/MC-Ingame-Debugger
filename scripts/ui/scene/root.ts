@@ -6,7 +6,7 @@ import { VECTOR3_ZERO, Vector3Utils as Vec3 } from "@minecraft/math";
 export interface RenderContext {
   dimension: Dimension;
   drawText: (text: string, location: Vector2, rotation?: Vector3) => TextPrimitive;
-  createButton: (rect: Rect, callbacks: ButtonCallbacks) => void;
+  createButton: (rect: Rect, callbacks: Readonly<ButtonCallbacks>) => void;
 }
 
 export interface ButtonCallbacks {
@@ -120,7 +120,7 @@ export class Root extends Node {
     if (!cursor) return;
     const button = this.getButton(cursor);
 
-    if (button === this.previousButtonHovered) return;
+    if (button?.onClick === this.previousButtonHovered?.onClick) return;
 
     const ctx: ButtonContext = {
       dimension: this.dimension,
@@ -129,17 +129,16 @@ export class Root extends Node {
       player: player,
     };
 
-    if (this.previousButtonHovered !== button && this.previousButtonHovered?.onHoverEnd) {
+    if (
+      this.previousButtonHovered?.onClick !== button?.onClick &&
+      this.previousButtonHovered?.onHoverEnd
+    ) {
       this.previousButtonHovered.onHoverEnd(ctx);
     }
 
     this.previousButtonHovered = button;
 
-    if (!button) return;
-
-    if (button.onHover) {
-      button.onHover(ctx);
-    }
+    if (button?.onHover) button.onHover(ctx);
   }
 
   getButton({ x, y }: Vector2): ButtonCallbacks | undefined {
@@ -194,6 +193,5 @@ export class Root extends Node {
   clear(): void {
     this.textPrimitives = [];
     this.buttons = [];
-    this.previousButtonHovered = undefined;
   }
 }

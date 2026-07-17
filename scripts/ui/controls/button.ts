@@ -4,17 +4,29 @@ import { ButtonContext, RenderContext } from "../scene/root";
 import { Label } from "./label";
 
 export class Button extends Node {
-  onHover?: (ctx: ButtonContext) => void;
-  onHoverEnd?: (ctx: ButtonContext) => void;
-  onClick?: (ctx: ButtonContext) => void;
+  private callbacks: {
+    onHover?: (ctx: ButtonContext) => void;
+    onHoverEnd?: (ctx: ButtonContext) => void;
+    onClick?: (ctx: ButtonContext) => void;
+  } = {};
+
+  label?: Label;
 
   constructor(text?: string) {
     super();
 
     if (text) {
-      const label = new Label(text);
+      this.label = new Label(text);
 
-      this.add(label);
+      this.add(this.label);
+
+      this.setOnHover((ctx) => {
+        this.label?.setString(colorCodes.gray + text);
+        ctx.frame();
+      }).setOnHoverEnd((ctx) => {
+        this.label?.setString(text);
+        ctx.frame();
+      });
     }
   }
 
@@ -27,35 +39,23 @@ export class Button extends Node {
     this.width = child?.width || 0;
   }
 
-  setDefaultHover(): void {
-    this.setOnHover(() => {
-      label.textPrimitive?.setText(colorCodes.gray + text);
-    }).setOnHoverEnd(() => {
-      label.textPrimitive?.setText(text);
-    });
-  }
-
   setOnHover(callback: (ctx: ButtonContext) => void): Button {
-    this.onHover = callback;
+    this.callbacks.onHover = callback;
     return this;
   }
 
   setOnHoverEnd(callback: (ctx: ButtonContext) => void): Button {
-    this.onHoverEnd = callback;
+    this.callbacks.onHoverEnd = callback;
     return this;
   }
 
   setOnClick(callback: (ctx: ButtonContext) => void): Button {
-    this.onClick = callback;
+    this.callbacks.onClick = callback;
     return this;
   }
 
   render(ctx: RenderContext): void {
     super.render(ctx);
-    ctx.createButton(new Rect(this.worldX, this.worldY, this.width, this.height), {
-      onHover: this.onHover,
-      onClick: this.onClick,
-      onHoverEnd: this.onHoverEnd,
-    });
+    ctx.createButton(new Rect(this.worldX, this.worldY, this.width, this.height), this.callbacks);
   }
 }

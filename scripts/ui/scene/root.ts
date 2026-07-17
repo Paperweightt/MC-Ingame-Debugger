@@ -113,6 +113,7 @@ export class Root extends Node {
     };
 
     if (button.onClick) button.onClick(ctx);
+    if (button.onHover) button.onHover(ctx);
   }
 
   hover(player: Player): void {
